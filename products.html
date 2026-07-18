@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>➕ Добавить товар</h2>
+    <form method="POST" action="/add_product">
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px;">
+            <input type="text" name="name" placeholder="Название *" required class="form-control">
+            <input type="text" name="description" placeholder="Описание" class="form-control">
+            <input type="number" step="0.01" name="price" placeholder="Цена *" required class="form-control">
+            <input type="number" name="stock" placeholder="Кол-во" value="0" class="form-control">
+            <button type="submit" class="btn btn-success" style="grid-column: span 1;">➕ Добавить</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>📦 Список товаров</h2>
+    <table>
+        <tr><th>ID</th><th>Название</th><th>Описание</th><th>Цена</th><th>Остаток</th><th>Действия</th></tr>
+        {% for p in products %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td><strong>{{ p.name }}</strong></td>
+            <td>{{ p.description or '-' }}</td>
+            <td>{{ p.price }} ₽</td>
+            <td>{% if p.stock < 5 %}<span style="color:red;">⚠️</span> {% endif %}{{ p.stock }}</td>
+            <td>
+                <button onclick="editProduct({{ p.id }}, '{{ p.name }}', '{{ p.description or '' }}', {{ p.price }}, {{ p.stock }})" class="btn btn-primary btn-sm">✏️</button>
+                <a href="/delete_product/{{ p.id }}" onclick="return confirm('Удалить товар?')" class="btn btn-danger btn-sm">🗑️</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Товаров нет</td></tr>
+        {% endfor %}
+    </table>
+</div>
+
+<!-- Модалка редактирования -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px; border-radius:12px; max-width:500px; width:90%;">
+        <h3>✏️ Редактировать товар</h3>
+        <form method="POST" id="editForm">
+            <div class="form-group"><label>Название *</label><input type="text" name="name" id="edit_name" class="form-control" required></div>
+            <div class="form-group"><label>Описание</label><input type="text" name="description" id="edit_description" class="form-control"></div>
+            <div class="form-group"><label>Цена *</label><input type="number" step="0.01" name="price" id="edit_price" class="form-control" required></div>
+            <div class="form-group"><label>Количество</label><input type="number" name="stock" id="edit_stock" class="form-control"></div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+                <button type="button" onclick="closeEdit()" class="btn btn-danger">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function editProduct(id, name, description, price, stock) {
+    document.getElementById('editModal').style.display = 'flex';
+    document.getElementById('editForm').action = '/edit_product/' + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_description').value = description;
+    document.getElementById('edit_price').value = price;
+    document.getElementById('edit_stock').value = stock;
+}
+function closeEdit() {
+    document.getElementById('editModal').style.display = 'none';
+}
+</script>
+{% endblock %}

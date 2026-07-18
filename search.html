@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>🔍 Поиск</h2>
+    <form method="GET" action="/search" class="search-box">
+        <input type="text" name="q" placeholder="Введите название товара или имя клиента..." value="{{ query }}" class="form-control">
+        <button type="submit" class="btn btn-primary">🔍 Найти</button>
+    </form>
+</div>
+
+{% if query %}
+<div class="card">
+    <h2>📦 Товары</h2>
+    {% if products %}
+    <table>
+        <tr><th>ID</th><th>Название</th><th>Цена</th><th>Остаток</th></tr>
+        {% for p in products %}
+        <tr><td>{{ p.id }}</td><td>{{ p.name }}</td><td>{{ p.price }} ₽</td><td>{{ p.stock }}</td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Товары не найдены</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>📋 Заказы</h2>
+    {% if orders %}
+    <table>
+        <tr><th>ID</th><th>Клиент</th><th>Товар</th><th>Статус</th></tr>
+        {% for o in orders %}
+        <tr><td>#{{ o.id }}</td><td>{{ o.customer_name }}</td><td>{{ o.product.name }}</td><td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>Заказы не найдены</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

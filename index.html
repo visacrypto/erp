@@ -1,48 +1,96 @@
 {% extends "base.html" %}
+
 {% block content %}
+<!-- СТАТИСТИКА -->
 <div class="row">
-    <div class="stat-card"><div class="number">{{ stats.total_products }}</div><div class="label">📦 Товаров</div></div>
-    <div class="stat-card"><div class="number">{{ stats.total_orders }}</div><div class="label">📋 Заказов</div></div>
-    <div class="stat-card"><div class="number">{{ stats.low_stock }}</div><div class="label">⚠️ Остаток <5</div></div>
-    <div class="stat-card"><div class="number">{{ stats.pending_orders }}</div><div class="label">⏳ В обработке</div></div>
+    <div class="stat-card">
+        <div class="number">{{ stats.total_products }}</div>
+        <div class="label">📦 Товаров</div>
+    </div>
+    <div class="stat-card">
+        <div class="number">{{ stats.total_orders }}</div>
+        <div class="label">📋 Заказов</div>
+    </div>
+    <div class="stat-card">
+        <div class="number">{{ stats.low_stock }}</div>
+        <div class="label">⚠️ Остаток &lt;5</div>
+    </div>
+    <div class="stat-card">
+        <div class="number">{{ stats.pending_orders }}</div>
+        <div class="label">⏳ В обработке</div>
+    </div>
 </div>
 
+<!-- ПОСЛЕДНИЕ ЗАКАЗЫ -->
 <div class="card">
     <h2>🆕 Последние заказы</h2>
     {% if orders %}
-    <table>
-        <tr><th>ID</th><th>Клиент</th><th>Товар</th><th>Кол-во</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr>
-        {% for o in orders %}
-        <tr>
-            <td>#{{ o.id }}</td>
-            <td>{{ o.customer_name }}</td>
-            <td>{{ o.product.name }}</td>
-            <td>{{ o.quantity }}</td>
-            <td>{{ o.total_price }} ₽</td>
-            <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
-            <td>{{ o.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Клиент</th>
+                    <th>Товар</th>
+                    <th>Кол-во</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td>#{{ o.id }}</td>
+                    <td>{{ o.customer_name }}</td>
+                    <td>{{ o.product.name }}</td>
+                    <td>{{ o.quantity }}</td>
+                    <td>{{ o.total_price }} ₽</td>
+                    <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
+                    <td>{{ o.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-    <p>Заказов пока нет</p>
+        <p style="color: #718096;">📭 Заказов пока нет</p>
     {% endif %}
 </div>
 
+<!-- ТОВАРЫ В НАЛИЧИИ -->
 <div class="card">
     <h2>📦 Товары в наличии</h2>
-    <table>
-        <tr><th>ID</th><th>Название</th><th>Цена</th><th>Остаток</th></tr>
-        {% for p in products[:10] %}
-        <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.price }} ₽</td>
-            <td>{% if p.stock < 5 %}<span style="color:red;">⚠️</span> {% endif %}{{ p.stock }}</td>
-        </tr>
-        {% else %}
-        <tr><td colspan="4">Товаров нет</td></tr>
-        {% endfor %}
-    </table>
+    {% if products %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Цена</th>
+                    <th>Остаток</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products[:10] %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.price }} ₽</td>
+                    <td>
+                        {% if p.stock < 5 %}
+                            <span style="color: #e53e3e;">⚠️</span>
+                        {% endif %}
+                        {{ p.stock }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #718096;">📭 Товаров нет</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: #718096;">📭 Товаров нет</p>
+    {% endif %}
 </div>
 {% endblock %}

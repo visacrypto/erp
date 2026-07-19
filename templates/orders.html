@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>📋 Создать заказ</h2>
+    <form method="POST" action="/create_order">
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px;">
+            <select name="product_id" class="form-control" required>
+                <option value="">Выберите товар</option>
+                {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.name }} ({{ p.stock }} шт. — {{ p.price }} руб.)</option>
+                {% else %}
+                    <option value="" disabled>Товаров нет</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="quantity" placeholder="Кол-во *" min="1" value="1" class="form-control" required>
+            <input type="text" name="customer_name" placeholder="Клиент" class="form-control">
+            <button type="submit" class="btn btn-success">✅ Создать</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>📋 Все заказы</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Товар</th>
+                <th>Кол-во</th>
+                <th>Сумма</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in orders %}
+            <tr>
+                <td>#{{ o.id }}</td>
+                <td>{{ o.customer_name }}</td>
+                <td>{{ o.product.name }}</td>
+                <td>{{ o.quantity }}</td>
+                <td>{{ o.total_price }} руб.</td>
+                <td>{{ o.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
+                <td>
+                    <form method="POST" action="/update_order/{{ o.id }}" class="form-inline" style="display:inline;">
+                        <select name="status" style="padding:4px; border-radius:4px; border:1px solid #ddd;">
+                            <option value="pending" {% if o.status=='pending' %}selected{% endif %}>В обработке</option>
+                            <option value="processing" {% if o.status=='processing' %}selected{% endif %}>Готовится</option>
+                            <option value="shipped" {% if o.status=='shipped' %}selected{% endif %}>Отправлен</option>
+                            <option value="delivered" {% if o.status=='delivered' %}selected{% endif %}>Доставлен</option>
+                            <option value="cancelled" {% if o.status=='cancelled' %}selected{% endif %}>Отменён</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Обновить</button>
+                    </form>
+                    <a href="/delete_order/{{ o.id }}" onclick="return confirm('Удалить заказ?')" class="btn btn-danger btn-sm">🗑️</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align:center; color:#718096;">📭 Заказов нет</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

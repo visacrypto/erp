@@ -4,17 +4,18 @@
 <div class="card">
     <h2>📋 Создать заказ</h2>
     <form method="POST" action="/create_order">
-        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px;">
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:10px;">
             <select name="product_id" class="form-control" required>
                 <option value="">Выберите товар</option>
                 {% for p in products %}
-                    <option value="{{ p.id }}">{{ p.name }} ({{ p.stock }} шт. — {{ p.price }} руб.)</option>
+                    <option value="{{ p.id }}">{{ p.name }} ({{ p.stock }} шт. — {{ p.price }} ₽)</option>
                 {% else %}
                     <option value="" disabled>Товаров нет</option>
                 {% endfor %}
             </select>
             <input type="number" name="quantity" placeholder="Кол-во *" min="1" value="1" class="form-control" required>
             <input type="text" name="customer_name" placeholder="Клиент" class="form-control">
+            <input type="text" name="customer_phone" placeholder="Телефон" class="form-control">
             <button type="submit" class="btn btn-success">✅ Создать</button>
         </div>
     </form>
@@ -27,9 +28,11 @@
             <tr>
                 <th>ID</th>
                 <th>Клиент</th>
+                <th>Телефон</th>
                 <th>Товар</th>
                 <th>Кол-во</th>
                 <th>Сумма</th>
+                <th>Прибыль</th>
                 <th>Дата</th>
                 <th>Статус</th>
                 <th>Действия</th>
@@ -40,13 +43,17 @@
             <tr>
                 <td>#{{ o.id }}</td>
                 <td>{{ o.customer_name }}</td>
+                <td>{{ o.customer_phone or '-' }}</td>
                 <td>{{ o.product.name }}</td>
                 <td>{{ o.quantity }}</td>
-                <td>{{ o.total_price }} руб.</td>
+                <td>{{ o.total_price }} ₽</td>
+                <td style="color: {% if o.profit > 0 %}#38a169{% else %}#e53e3e{% endif %};">
+                    {{ o.profit }} ₽
+                </td>
                 <td>{{ o.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
                 <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
                 <td>
-                    <form method="POST" action="/update_order/{{ o.id }}" class="form-inline" style="display:inline;">
+                    <form method="POST" action="/update_order/{{ o.id }}" style="display:inline;">
                         <select name="status" style="padding:4px; border-radius:4px; border:1px solid #ddd;">
                             <option value="pending" {% if o.status=='pending' %}selected{% endif %}>В обработке</option>
                             <option value="processing" {% if o.status=='processing' %}selected{% endif %}>Готовится</option>
@@ -61,7 +68,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="8" style="text-align:center; color:#718096;">📭 Заказов нет</td>
+                <td colspan="10" style="text-align:center; color:#718096;">📭 Заказов нет</td>
             </tr>
             {% endfor %}
         </tbody>

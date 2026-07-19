@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -12,11 +13,19 @@
     </div>
     <div class="stat-card">
         <div class="number">{{ stats.low_stock }}</div>
-        <div class="label">⚠️ Остаток &lt;5</div>
+        <div class="label">⚠️ Остаток &lt; мин.</div>
     </div>
     <div class="stat-card">
         <div class="number">{{ stats.pending_orders }}</div>
         <div class="label">⏳ В обработке</div>
+    </div>
+    <div class="stat-card">
+        <div class="number">{{ stats.total_revenue }} ₽</div>
+        <div class="label">💰 Выручка</div>
+    </div>
+    <div class="stat-card">
+        <div class="number">{{ stats.total_profit }} ₽</div>
+        <div class="label">📈 Прибыль</div>
     </div>
 </div>
 
@@ -31,6 +40,7 @@
                     <th>Товар</th>
                     <th>Кол-во</th>
                     <th>Сумма</th>
+                    <th>Прибыль</th>
                     <th>Статус</th>
                     <th>Дата</th>
                 </tr>
@@ -42,7 +52,8 @@
                     <td>{{ o.customer_name }}</td>
                     <td>{{ o.product.name }}</td>
                     <td>{{ o.quantity }}</td>
-                    <td>{{ o.total_price }} руб.</td>
+                    <td>{{ o.total_price }} ₽</td>
+                    <td>{{ o.profit }} ₽</td>
                     <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
                     <td>{{ o.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
                 </tr>
@@ -55,35 +66,33 @@
 </div>
 
 <div class="card">
-    <h2>📦 Товары в наличии</h2>
-    {% if products %}
+    <h2>📦 Товары с низким остатком</h2>
+    {% set low_stock_products = products|selectattr('stock', 'lt', 'min_stock')|list %}
+    {% if low_stock_products %}
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Название</th>
-                    <th>Цена</th>
                     <th>Остаток</th>
+                    <th>Мин. остаток</th>
+                    <th>Статус</th>
                 </tr>
             </thead>
             <tbody>
-                {% for p in products[:10] %}
+                {% for p in low_stock_products[:10] %}
                 <tr>
                     <td>{{ p.id }}</td>
                     <td>{{ p.name }}</td>
-                    <td>{{ p.price }} руб.</td>
-                    <td>
-                        {% if p.stock < 5 %}
-                            <span style="color: #dc3545;">⚠️</span>
-                        {% endif %}
-                        {{ p.stock }}
-                    </td>
+                    <td style="color: #e53e3e; font-weight: bold;">{{ p.stock }}</td>
+                    <td>{{ p.min_stock }}</td>
+                    <td><span style="color: #e53e3e;">⚠️ Нужно пополнить!</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p style="color: #718096; text-align: center; padding: 20px;">📭 Товаров нет</p>
+        <p style="color: #38a169; text-align: center; padding: 20px;">✅ Все товары в норме</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>🔍 Поиск</h2>
+    <form method="GET" action="/search" style="display:flex; gap:10px;">
+        <input type="text" name="q" placeholder="Название товара или имя клиента..." value="{{ query }}" class="form-control" style="flex:1;">
+        <button type="submit" class="btn btn-primary">🔍 Найти</button>
+    </form>
+</div>
+
+{% if query %}
+<div class="card">
+    <h2>📦 Товары</h2>
+    {% if products %}
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Название</th><th>Цена</th><th>Остаток</th></tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.price }} руб.</td>
+                    <td>{{ p.stock }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color:#718096;">❌ Товары не найдены</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>📋 Заказы</h2>
+    {% if orders %}
+        <table>
+            <thead>
+                <tr><th>ID</th><th>Клиент</th><th>Товар</th><th>Статус</th></tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td>#{{ o.id }}</td>
+                    <td>{{ o.customer_name }}</td>
+                    <td>{{ o.product.name }}</td>
+                    <td><span class="badge badge-{{ o.status }}">{{ o.status }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color:#718096;">❌ Заказы не найдены</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

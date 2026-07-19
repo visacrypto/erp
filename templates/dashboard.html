@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="stat-card" style="border-top-color: #38a169;">
+        <div class="number">{{ total_revenue }} ₽</div>
+        <div class="label">💰 Общая выручка</div>
+    </div>
+    <div class="stat-card" style="border-top-color: #f6ad55;">
+        <div class="number">{{ total_profit }} ₽</div>
+        <div class="label">📈 Общая прибыль</div>
+    </div>
+    <div class="stat-card" style="border-top-color: #e53e3e;">
+        <div class="number">{{ total_expenses }} ₽</div>
+        <div class="label">📉 Расходы</div>
+    </div>
+    <div class="stat-card" style="border-top-color: #2b6cb0;">
+        <div class="number">{{ status_stats.pending }}</div>
+        <div class="label">⏳ Заказов в обработке</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>📊 Динамика продаж (7 дней)</h2>
+    <canvas id="salesChart" height="100"></canvas>
+</div>
+
+<div class="row">
+    <div class="card" style="flex:1;">
+        <h2>🏆 Топ-5 товаров</h2>
+        {% if top_products %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Продано</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in top_products %}
+                    <tr>
+                        <td>{{ product[0] }}</td>
+                        <td>{{ product[1] }} шт.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Нет данных</p>
+        {% endif %}
+    </div>
+    <div class="card" style="flex:1;">
+        <h2>📊 Статусы заказов</h2>
+        <canvas id="statusChart" height="150"></canvas>
+    </div>
+</div>
+
+<script>
+// График продаж
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ dates|tojson }},
+        datasets: [
+            {
+                label: 'Выручка',
+                data: {{ revenue_data|tojson }},
+                borderColor: '#2b6cb0',
+                backgroundColor: 'rgba(43, 108, 176, 0.1)',
+                fill: true,
+                tension: 0.3
+            },
+            {
+                label: 'Прибыль',
+                data: {{ profit_data|tojson }},
+                borderColor: '#38a169',
+                backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                fill: true,
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) { return value + ' ₽'; }
+                }
+            }
+        }
+    }
+});
+
+// График статусов
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['В обработке', 'Готовится', 'Отправлен', 'Доставлен', 'Отменён'],
+        datasets: [{
+            data: [
+                {{ status_stats.pending }},
+                {{ status_stats.processing }},
+                {{ status_stats.shipped }},
+                {{ status_stats.delivered }},
+                {{ status_stats.cancelled }}
+            ],
+            backgroundColor: ['#fefcbf', '#bee3f8', '#c6f6d5', '#9ae6b4', '#fed7d7'],
+            borderColor: ['#975a16', '#2a69ac', '#22543d', '#22543d', '#9b2c2c'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

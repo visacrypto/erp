@@ -6,7 +6,6 @@ import os
 app = Flask(__name__)
 app.secret_key = 'uzerp-secret-key-2024'
 
-# База данных
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uzerp.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -25,7 +24,7 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    customer_name = db.Column(db.String(100), default='Mijoz')
+    customer_name = db.Column(db.String(100), default='Клиент')
     order_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')
     total_price = db.Column(db.Float)
@@ -42,11 +41,11 @@ with app.app_context():
     db.create_all()
     if Product.query.count() == 0:
         products = [
-            Product(name='Noutbuk', description='Zamonaviy noutbuk', price=1500.00, stock=10),
-            Product(name='Sichqoncha', description='Simsiz sichqoncha', price=25.50, stock=50),
-            Product(name='Klaviatura', description='Mexanik klaviatura', price=80.00, stock=30),
-            Product(name='Monitor', description='27 dyuym 4K', price=400.00, stock=15),
-            Product(name='Naushniklar', description='Simsiz naushniklar', price=120.00, stock=25),
+            Product(name='Ноутбук', description='Игровой ноутбук', price=1500.00, stock=10),
+            Product(name='Мышь', description='Беспроводная мышь', price=25.50, stock=50),
+            Product(name='Клавиатура', description='Механическая', price=80.00, stock=30),
+            Product(name='Монитор', description='27 дюймов 4K', price=400.00, stock=15),
+            Product(name='Наушники', description='Беспроводные', price=120.00, stock=25),
         ]
         db.session.add_all(products)
         db.session.commit()
@@ -78,15 +77,15 @@ def add_product():
         stock = int(request.form.get('stock', 0))
         
         if not name or price <= 0:
-            flash('Nomi va narxi majburiy!', 'error')
+            flash('Название и цена обязательны!', 'error')
             return redirect(url_for('products'))
         
         product = Product(name=name, description=description, price=price, stock=stock)
         db.session.add(product)
         db.session.commit()
-        flash(f'"{name}" qo\'shildi!', 'success')
+        flash(f'Товар "{name}" добавлен!', 'success')
     except Exception as e:
-        flash(f'Xatolik: {str(e)}', 'error')
+        flash(f'Ошибка: {str(e)}', 'error')
     return redirect(url_for('products'))
 
 @app.route('/edit_product/<int:id>', methods=['POST'])
@@ -98,9 +97,9 @@ def edit_product(id):
         product.price = float(request.form.get('price', 0))
         product.stock = int(request.form.get('stock', 0))
         db.session.commit()
-        flash('Mahsulot yangilandi!', 'success')
+        flash('Товар обновлён!', 'success')
     except Exception as e:
-        flash(f'Xatolik: {str(e)}', 'error')
+        flash(f'Ошибка: {str(e)}', 'error')
     return redirect(url_for('products'))
 
 @app.route('/delete_product/<int:id>')
@@ -109,9 +108,9 @@ def delete_product(id):
         product = Product.query.get_or_404(id)
         db.session.delete(product)
         db.session.commit()
-        flash('Mahsulot o\'chirildi!', 'success')
+        flash('Товар удалён!', 'success')
     except Exception as e:
-        flash(f'Xatolik: {str(e)}', 'error')
+        flash(f'Ошибка: {str(e)}', 'error')
     return redirect(url_for('products'))
 
 @app.route('/orders')
@@ -125,15 +124,15 @@ def create_order():
     try:
         product_id = int(request.form.get('product_id'))
         quantity = int(request.form.get('quantity', 1))
-        customer_name = request.form.get('customer_name', 'Mijoz').strip()
+        customer_name = request.form.get('customer_name', 'Клиент').strip()
         
         product = Product.query.get(product_id)
         if not product:
-            flash('Mahsulot topilmadi!', 'error')
+            flash('Товар не найден!', 'error')
             return redirect(url_for('orders'))
         
         if product.stock < quantity:
-            flash(f'Yetarli mahsulot yo\'q! Qoldiq: {product.stock}', 'error')
+            flash(f'Недостаточно товара! Остаток: {product.stock}', 'error')
             return redirect(url_for('orders'))
         
         order = Order(product_id=product_id, quantity=quantity, customer_name=customer_name)
@@ -143,9 +142,9 @@ def create_order():
         
         db.session.add(order)
         db.session.commit()
-        flash(f'#{order.id}-buyurtma {order.total_price} so\'mga yaratildi!', 'success')
+        flash(f'Заказ #{order.id} создан на сумму {order.total_price} руб.!', 'success')
     except Exception as e:
-        flash(f'Xatolik: {str(e)}', 'error')
+        flash(f'Ошибка: {str(e)}', 'error')
     return redirect(url_for('orders'))
 
 @app.route('/update_order/<int:id>', methods=['POST'])
@@ -156,11 +155,11 @@ def update_order(id):
         if new_status in ['pending', 'processing', 'shipped', 'delivered', 'cancelled']:
             order.status = new_status
             db.session.commit()
-            flash(f'#{id}-buyurtma holati yangilandi!', 'success')
+            flash(f'Статус заказа #{id} обновлён!', 'success')
         else:
-            flash('Noto\'g\'ri holat!', 'error')
+            flash('Неверный статус!', 'error')
     except Exception as e:
-        flash(f'Xatolik: {str(e)}', 'error')
+        flash(f'Ошибка: {str(e)}', 'error')
     return redirect(url_for('orders'))
 
 @app.route('/delete_order/<int:id>')
@@ -172,9 +171,9 @@ def delete_order(id):
             product.stock += order.quantity
         db.session.delete(order)
         db.session.commit()
-        flash(f'#{id}-buyurtma o\'chirildi!', 'success')
+        flash(f'Заказ #{id} удалён!', 'success')
     except Exception as e:
-        flash(f'Xatolik: {str(e)}', 'error')
+        flash(f'Ошибка: {str(e)}', 'error')
     return redirect(url_for('orders'))
 
 @app.route('/search')
@@ -193,8 +192,8 @@ def search():
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🇺🇿 UzERP SISTEMASI ISHGA TUSHDI")
-    print("📂 Ma'lumotlar bazasi:", os.path.abspath('uzerp.db'))
-    print("🌐 Ochish: http://127.0.0.1:5000")
+    print("🚀 UzERP СИСТЕМА ЗАПУЩЕНА")
+    print("📂 База данных:", os.path.abspath('uzerp.db'))
+    print("🌐 Откройте: http://127.0.0.1:5000")
     print("="*50 + "\n")
     app.run(debug=True, host='0.0.0.0', port=5000)

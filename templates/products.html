@@ -4,11 +4,17 @@
 <div class="card">
     <h2>➕ Добавить товар</h2>
     <form method="POST" action="/add_product">
-        <div style="display:grid; grid-template-columns: 2fr 2fr 1fr 1fr auto; gap:10px;">
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap:10px;">
             <input type="text" name="name" placeholder="Название *" required class="form-control">
-            <input type="text" name="description" placeholder="Описание" class="form-control">
+            <input type="text" name="sku" placeholder="Артикул" class="form-control">
+            <input type="text" name="category" placeholder="Категория" class="form-control">
             <input type="number" step="0.01" name="price" placeholder="Цена *" required class="form-control">
+            <input type="number" step="0.01" name="cost_price" placeholder="Себестоимость" class="form-control">
+        </div>
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:10px; margin-top:10px;">
+            <input type="text" name="description" placeholder="Описание" class="form-control">
             <input type="number" name="stock" placeholder="Кол-во" value="0" class="form-control">
+            <input type="number" name="min_stock" placeholder="Мин. остаток" value="5" class="form-control">
             <button type="submit" class="btn btn-success">➕ Добавить</button>
         </div>
     </form>
@@ -20,9 +26,12 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Артикул</th>
                 <th>Название</th>
-                <th>Описание</th>
+                <th>Категория</th>
                 <th>Цена</th>
+                <th>Себест.</th>
+                <th>Прибыль</th>
                 <th>Остаток</th>
                 <th>Действия</th>
             </tr>
@@ -31,23 +40,28 @@
             {% for p in products %}
             <tr>
                 <td>{{ p.id }}</td>
+                <td>{{ p.sku or '-' }}</td>
                 <td><strong>{{ p.name }}</strong></td>
-                <td>{{ p.description or '-' }}</td>
-                <td>{{ p.price }} руб.</td>
+                <td>{{ p.category or '-' }}</td>
+                <td>{{ p.price }} ₽</td>
+                <td>{{ p.cost_price }} ₽</td>
+                <td style="color: {% if p.price - p.cost_price > 0 %}#38a169{% else %}#e53e3e{% endif %};">
+                    {{ p.price - p.cost_price }} ₽
+                </td>
                 <td>
-                    {% if p.stock < 5 %}
-                        <span style="color: #dc3545;">⚠️</span>
+                    {% if p.stock < p.min_stock %}
+                        <span style="color: #e53e3e;">⚠️</span>
                     {% endif %}
                     {{ p.stock }}
                 </td>
                 <td>
-                    <button onclick="editProduct({{ p.id }}, '{{ p.name }}', '{{ p.description or '' }}', {{ p.price }}, {{ p.stock }})" class="btn btn-warning btn-sm">✏️</button>
+                    <button onclick="editProduct({{ p.id }}, '{{ p.name }}', '{{ p.description or '' }}', {{ p.price }}, {{ p.cost_price }}, {{ p.stock }}, {{ p.min_stock }}, '{{ p.category or '' }}', '{{ p.sku or '' }}')" class="btn btn-warning btn-sm">✏️</button>
                     <a href="/delete_product/{{ p.id }}" onclick="return confirm('Удалить товар?')" class="btn btn-danger btn-sm">🗑️</a>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" style="text-align:center; color:#718096;">📭 Товаров нет</td>
+                <td colspan="9" style="text-align:center; color:#718096;">📭 Товаров нет</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -56,24 +70,42 @@
 
 <!-- Модальное окно редактирования -->
 <div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center;">
-    <div style="background:white; padding:30px; border-radius:12px; max-width:500px; width:90%;">
-        <h3 style="color:#1e3a5f;">✏️ Редактировать товар</h3>
+    <div style="background:white; padding:30px; border-radius:12px; max-width:600px; width:90%;">
+        <h3 style="color:#1a365d;">✏️ Редактировать товар</h3>
         <form method="POST" id="editForm">
-            <div class="form-group" style="margin-top:15px;">
-                <label>Название *</label>
-                <input type="text" name="name" id="edit_name" class="form-control" required>
-            </div>
-            <div class="form-group" style="margin-top:15px;">
-                <label>Описание</label>
-                <input type="text" name="description" id="edit_description" class="form-control">
-            </div>
-            <div class="form-group" style="margin-top:15px;">
-                <label>Цена *</label>
-                <input type="number" step="0.01" name="price" id="edit_price" class="form-control" required>
-            </div>
-            <div class="form-group" style="margin-top:15px;">
-                <label>Количество</label>
-                <input type="number" name="stock" id="edit_stock" class="form-control">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+                <div>
+                    <label>Название *</label>
+                    <input type="text" name="name" id="edit_name" class="form-control" required>
+                </div>
+                <div>
+                    <label>Артикул</label>
+                    <input type="text" name="sku" id="edit_sku" class="form-control">
+                </div>
+                <div>
+                    <label>Категория</label>
+                    <input type="text" name="category" id="edit_category" class="form-control">
+                </div>
+                <div>
+                    <label>Цена *</label>
+                    <input type="number" step="0.01" name="price" id="edit_price" class="form-control" required>
+                </div>
+                <div>
+                    <label>Себестоимость</label>
+                    <input type="number" step="0.01" name="cost_price" id="edit_cost_price" class="form-control">
+                </div>
+                <div>
+                    <label>Количество</label>
+                    <input type="number" name="stock" id="edit_stock" class="form-control">
+                </div>
+                <div>
+                    <label>Мин. остаток</label>
+                    <input type="number" name="min_stock" id="edit_min_stock" class="form-control">
+                </div>
+                <div>
+                    <label>Описание</label>
+                    <input type="text" name="description" id="edit_description" class="form-control">
+                </div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button type="submit" class="btn btn-primary">💾 Сохранить</button>
@@ -84,13 +116,17 @@
 </div>
 
 <script>
-function editProduct(id, name, description, price, stock) {
+function editProduct(id, name, description, price, cost_price, stock, min_stock, category, sku) {
     document.getElementById('editModal').style.display = 'flex';
     document.getElementById('editForm').action = '/edit_product/' + id;
     document.getElementById('edit_name').value = name;
     document.getElementById('edit_description').value = description;
     document.getElementById('edit_price').value = price;
+    document.getElementById('edit_cost_price').value = cost_price;
     document.getElementById('edit_stock').value = stock;
+    document.getElementById('edit_min_stock').value = min_stock;
+    document.getElementById('edit_category').value = category;
+    document.getElementById('edit_sku').value = sku;
 }
 function closeEdit() {
     document.getElementById('editModal').style.display = 'none';
